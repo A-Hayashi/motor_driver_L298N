@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include "L298N.h"
+#include "VarSpeedServo.h"
 
 #define ENA 5
 #define IN1 9
@@ -8,6 +9,9 @@
 #define IN4 12
 #define ENB 3
 
+VarSpeedServo myservo0;
+VarSpeedServo myservo1;
+
 L298N motor0(ENA, IN1, IN2);
 L298N motor1(ENB, IN3, IN4);
 
@@ -15,10 +19,22 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Motor Start");
 
+  myservo0.attach(8);
+  myservo1.attach(7);
+
   i2c_init();
 }
 
 void loop() {
+  //  myservo1.write(0, 40);
+  //  delay(2000);
+  //  myservo1.write(90, 40);
+  //  delay(2000);
+  //  myservo1.write(180, 80);
+  //  delay(2000);
+  //  myservo1.write(90, 40);
+  //  delay(2000);
+
   //  Serial.println("Motor0 Forward");
   //  motor0.setSpeed(255);
   //  motor0.forward();
@@ -57,7 +73,7 @@ void receiveEvent(int howMany) {
     if (howMany == 3) {
       byte motor = Wire.read();
       uint8_t buf = Wire.read();
-      
+
       int speed = *(int8_t *)(&buf);
       Serial.print("motor: ");
       Serial.print(motor);
@@ -87,6 +103,28 @@ void receiveEvent(int howMany) {
         }
       } else {
 
+      }
+    }
+  }
+
+  if (cmd == 0x02) {
+    if (howMany == 4) {
+      byte servo = Wire.read();
+      byte angle = Wire.read();
+      byte speed = Wire.read();
+      Serial.print("servo: ");
+      Serial.print(servo);
+      Serial.print(" angle: ");
+      Serial.print(angle);
+      Serial.print(" speed: ");
+      Serial.println(speed);
+      switch (servo) {
+        case 0:
+          myservo0.write(angle, speed);
+          break;
+        case 1:
+          myservo1.write(angle, speed);
+          break;
       }
     }
   }
